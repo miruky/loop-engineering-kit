@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "goal": "Set complete to true in project/app/result.json while preserving the agreed title. Consult project/docs/requirements.md.",
+  "worker": {
+    "provider": "command",
+    "command": {
+      "argv": [
+        "{python}",
+        "project/checks/worker.py",
+        "loop"
+      ],
+      "timeout": 20
+    }
+  },
+  "verifier": {
+    "format": "junit",
+    "command": {
+      "argv": [
+        "{python}",
+        "project/checks/verify.py",
+        "{result}"
+      ],
+      "timeout": 20
+    }
+  },
+  "protected_inputs": [
+    "project/docs/**",
+    "project/checks/**"
+  ],
+  "progress_inputs": [
+    "project/app/**"
+  ],
+  "max_attempts": 4,
+  "max_seconds": 120,
+  "stagnation_limit": 2,
+  "backoff_seconds": 0
+}
