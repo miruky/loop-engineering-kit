@@ -5,6 +5,15 @@ from test_core import ProjectCase
 
 
 class LoopWorkflow(ProjectCase):
+    def test_allowed_large_output_does_not_make_completed_state_unreadable(self):
+        cfg = engine.configuration(self.root)
+        cfg["worker"] = {"provider":"command", "command":self.command("print('x'*(9*1024*1024))", max_output_bytes=10*1024*1024)}
+        cfg["verifier"] = {"format":"exit", "command":self.command("print('verified')")}
+        write_json(self.root, engine.CONFIG, cfg)
+        finished = engine.run(self.root)
+        self.assertEqual(finished["status"], "completed")
+        self.assertEqual(engine.run(self.root, resume=True), finished)
+        self.assertLess((self.root / state_path("loop")).stat().st_size, 100000)
     def test_verifier_configuration_change_cannot_complete_the_run(self):
         cfg = engine.configuration(self.root)
         cfg["worker"] = {"provider": "command", "command": self.command("print('work')")}
