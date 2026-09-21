@@ -103,6 +103,7 @@ def run(root, *, resume=False, new=False, retry_interrupted=False, allow_agent=F
                 record()
                 before_verify = snapshot(root, cfg["progress_inputs"], required=False)
                 attempt["verification"] = verify(root, cfg["verifier"], remaining=remaining())
+                check_fingerprint(digest(cfg), digest(configuration(root)), "loop configuration during verifier")
                 check_fingerprint(protected, snapshot(root, cfg["protected_inputs"]), "protected inputs during verifier")
                 progress = snapshot(root, cfg["progress_inputs"], required=False)
                 check_fingerprint(before_verify, progress, "product during verifier")

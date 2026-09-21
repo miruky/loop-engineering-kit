@@ -5,6 +5,15 @@ from test_core import ProjectCase
 
 
 class LoopWorkflow(ProjectCase):
+    def test_verifier_configuration_change_cannot_complete_the_run(self):
+        cfg = engine.configuration(self.root)
+        cfg["worker"] = {"provider": "command", "command": self.command("print('work')")}
+        cfg["verifier"] = {"format": "exit", "command": self.command(
+            "import json;from pathlib import Path;p=Path('.agentkit/loop.json');"
+            "c=json.loads(p.read_text());c['max_attempts']=9;p.write_text(json.dumps(c))")}
+        write_json(self.root, engine.CONFIG, cfg)
+        self.assertCode("STALE_INPUTS", lambda: engine.run(self.root))
+        self.assertEqual(engine.status(self.root)["status"], "blocked")
     def config(self, function):
         value = engine.configuration(self.root)
         function(value)
