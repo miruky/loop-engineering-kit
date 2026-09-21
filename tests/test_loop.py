@@ -5,6 +5,16 @@ from test_core import ProjectCase
 
 
 class LoopWorkflow(ProjectCase):
+    def test_completed_resume_rechecks_retained_junit_bytes(self):
+        state = engine.run(self.root)
+        report = self.root / state["attempts"][-1]["verification"]["junit"]["report_path"]
+        original = report.read_bytes()
+        report.write_bytes(original + b"\n")
+        self.assertCode("STALE_INPUTS", lambda: engine.run(self.root, resume=True))
+        report.write_bytes(original)
+        self.assertEqual(engine.run(self.root, resume=True), state)
+        report.unlink()
+        self.assertCode("MISSING_FILE", lambda: engine.run(self.root, resume=True))
     def test_allowed_large_output_does_not_make_completed_state_unreadable(self):
         cfg = engine.configuration(self.root)
         cfg["worker"] = {"provider":"command", "command":self.command("print('x'*(9*1024*1024))", max_output_bytes=10*1024*1024)}

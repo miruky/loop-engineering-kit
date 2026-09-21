@@ -9,7 +9,7 @@ python3 kit.py status
 python3 kit.py resume
 ```
 
-The deterministic worker needs two attempts in the example. Each result is independently tested. Resuming a completed run verifies its recorded inputs and returns the same run without invoking the worker again.
+The deterministic worker needs two attempts in the example. Each result is independently tested. Resuming a completed run verifies its recorded inputs and any retained successful JUnit report, then returns the same run without invoking the worker again. Missing or changed evidence is rejected.
 
 ## Configure a real goal
 

@@ -8,7 +8,7 @@ import uuid
 from .core import (KitError, require, object_fields, strings, number, load_json, decode_json,
                    digest, canonical, snapshot, confined, write_json, ProjectLock, state_path,
                    now, check_fingerprint, contains_secret)
-from .runtime import validate_command, verify, worker_result, feedback
+from .runtime import validate_command, verify, worker_result, feedback, retained_junit
 
 CONFIG = ".agentkit/loop.json"
 
@@ -61,6 +61,10 @@ def run(root, *, resume=False, new=False, retry_interrupted=False, allow_agent=F
             check_fingerprint(state.get("protected_inputs"), protected, "protected inputs")
             if state["status"] == "completed":
                 check_fingerprint(state.get("final_inputs"), snapshot(root, cfg["progress_inputs"], required=False), "completed product")
+                require(state["attempts"] and state["attempts"][-1].get("verification", {}).get("ok") is True,
+                        "Completed run lacks successful verification", "INVALID_STATE")
+                if cfg["verifier"]["format"] == "junit":
+                    retained_junit(root, state["attempts"][-1]["verification"].get("junit"))
                 return state
             require(state["status"] in ("running", "interrupted"), "Only interrupted runs can resume; start an explicit new run")
             require(retry_interrupted, "The last attempt may have side effects; pass --retry-interrupted after inspection", "RETRY_CONFIRMATION")
